@@ -1,9 +1,11 @@
 #define _USE_MATH_DEFINES
+#include <iostream>
 #include<math.h>
 #include<stdio.h>
 #include<string.h>
 #include <stdlib.h>
 #include <random>
+#include <fstream>
 
 extern "C" {
 #include"./SDL2-2.0.10/include/SDL.h"
@@ -26,8 +28,8 @@ extern "C" {
 #define BULLET_LENGTH 25
 #define BULLET_WIDTH 5
 
-#define START_CAR_NUMBER 5
-#define UNLIMITED_CARS_TIME 10 //seconds
+#define START_CAR_NUMBER 2
+#define UNLIMITED_CARS_TIME 1 //seconds
 
 #define ROAD_SPEED 200
 #define ENEMY_SPEED	50
@@ -39,6 +41,8 @@ extern "C" {
 #define POWERUP_SPAWN 10
 
 #define NEW_CAR_POINTS 100 // in points/50
+
+using namespace std;
 
 
 // narysowanie napisu txt na powierzchni screen, zaczynając od punktu (x, y)
@@ -257,6 +261,14 @@ void set_position(struct position* position)
 //
 //	return 0;
 //}
+
+void save_result(string name, int score, double time)
+{
+	FILE* list = fopen("best_results.txt", "a");
+
+	fprintf(list, "%s %d %.2lf\n", name.c_str(), score, time);
+	fclose(list);
+}
 
 void draw_game_controls(SDL_Surface* screen, SDL_Surface* charset, int kolor1, int kolor2)
 {
@@ -664,21 +676,42 @@ void add_car(int* car_number, double* points, double* previous_points)
 	*previous_points = *points;
 }
 
-void draw_no_cars(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex, SDL_Renderer* renderer, int kolor1, int kolor2, int czarny, double* no_cars, int* car_number, double* delta_time, double* points)
+void draw_no_cars(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex, SDL_Renderer* renderer, int kolor1, int kolor2, int czarny, double* no_cars, int* car_number, double* delta_time, double* points, double* world_time, SDL_Event* event)
 {
 	SDL_FillRect(screen, NULL, czarny);
 	*no_cars = 5.0;
+	string name = "";
+	int size = 0;
+	char txt[128];
+	
+	SDL_StartTextInput();
+
 	while (*no_cars > 0)
 	{
-		char text[128];
+		
 		DrawRectangle(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4, 16, 3 * (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4, 256, kolor1, kolor2);
 
-		sprintf(text, "KONIEC GRY. ZABRAKLO SAMOCHODOW");
-		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 64, text, charset);
-		sprintf(text, "NOWA GRA ROZPOCZNIE SIE ZA %.1lf s", *no_cars);
-		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 96, text, charset);
-		sprintf(text, "TWOJ WYNIK: %d ", (int)(*points)*50);
-		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 128, text, charset);
+		sprintf(txt, "KONIEC GRY. ZABRAKLO SAMOCHODOW");
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 64, txt, charset);
+		sprintf(txt, "NOWA GRA ROZPOCZNIE SIE ZA %.1lf s", *no_cars);
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 96, txt, charset);
+		sprintf(txt, "TWOJ WYNIK: %d ", (int)(*points)*50);
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 128, txt, charset);
+		sprintf(txt, "TWOJ CZAS: %.2lf ", *world_time);
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 160, txt, charset);
+		sprintf(txt, "WPISZ SWOJ NICK: %s ", name.c_str());
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 192, txt, charset);
+
+		while (SDL_PollEvent(event))
+		{
+			switch (event->type)
+			{
+				case SDL_TEXTINPUT:
+					name += event->text.text;
+					size++;
+			}
+		}
+		printf("%s\n", name.c_str());
 
 		*no_cars -= *delta_time;
 
@@ -688,7 +721,14 @@ void draw_no_cars(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex
 		SDL_RenderPresent(renderer);
 
 	}
+
+	SDL_StopTextInput();
+
+	if (size == 0) name = "anonymus";
+	save_result(name, 50 * (int)(*points), *world_time);
 }
+
+
 
 
 
@@ -895,7 +935,7 @@ int main(int argc, char **argv) {
 		//koniec
 		if(car_number<=0)
 		{
-			draw_no_cars(screen, charset, scrtex, renderer, zielony, czerwony, czarny, &no_cars, &car_number, &delta_time, &points);
+			draw_no_cars(screen, charset, scrtex, renderer, zielony, czerwony, czarny, &no_cars, &car_number, &delta_time, &points, &world_time, &event);
 			set_variables(&t1, &frames, &fps_timer, &fps, &quit, &world_time, &distance, &car_speed_x, &car_speed_y, &points, &road_width, &xpoints, &powerup_exist, &enemy_exist, &powerup_time, &npc_exist, &bullet1_counter, &bullet2_counter, &bullet_powerup_counter, bullet1_exist, bullet2_exist, bullet_powerup_exist, &nopoints_time, &car_number, &previous_points, &no_cars, &przesuniecie, &delta_position, &expected_road_width);
 			set_position(&car_position);
 		}
