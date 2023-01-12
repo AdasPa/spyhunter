@@ -26,17 +26,19 @@ extern "C" {
 #define BULLET_LENGTH 25
 #define BULLET_WIDTH 5
 
-#define START_CAR_NUMBER 1
+#define START_CAR_NUMBER 5
 #define UNLIMITED_CARS_TIME 10 //seconds
 
-#define ROAD_SPEED 100
-#define ENEMY_SPEED 40
-#define NPC_SPEED 50
+#define ROAD_SPEED 200
+#define ENEMY_SPEED	50
+#define NPC_SPEED 300
 
 //spawn frequency
-#define ENEMY_SPAWN 40
-#define NPC_SPAWN 50
-#define POWERUP_SPAWN 50
+#define ENEMY_SPAWN 2
+#define NPC_SPAWN 3
+#define POWERUP_SPAWN 10
+
+#define NEW_CAR_POINTS 100 // in points/50
 
 
 // narysowanie napisu txt na powierzchni screen, zaczynając od punktu (x, y)
@@ -129,7 +131,7 @@ struct position
 };
 
 
-void set_variables(int* t1, int* frames, double* fpsTimer, double* fps, int* quit, double* worldTime, double* distance, double* carSpeed, double* points, int* road_width, double* xpoints, double* powerup_exist, double* enemy_exist, double* powerup_time, double* npc_exist, int* bullet1_counter, int* bullet2_counter, int* bullet_powerup_counter, int* bullet1_exist, int* bullet2_exist, int* bullet_powerup_exist, double* nopoints_time, int* car_number, double* previous_points, double* no_cars, double* przesuniecie)
+void set_variables(int* t1, int* frames, double* fpsTimer, double* fps, int* quit, double* worldTime, double* distance, double* car_speed_x, double* car_speed_y, double* points, int* road_width, double* xpoints, double* powerup_exist, double* enemy_exist, double* powerup_time, double* npc_exist, int* bullet1_counter, int* bullet2_counter, int* bullet_powerup_counter, int* bullet1_exist, int* bullet2_exist, int* bullet_powerup_exist, double* nopoints_time, int* car_number, double* previous_points, double* no_cars, double* przesuniecie, double* delta_position)
 {
 	*t1 = SDL_GetTicks();
 	*frames = 0;
@@ -138,7 +140,8 @@ void set_variables(int* t1, int* frames, double* fpsTimer, double* fps, int* qui
 	*quit = 0;
 	*worldTime = 0;
 	*distance = 0;
-	*carSpeed = 10;
+	*car_speed_x = 0;
+	*car_speed_y = 0;
 	*points = 0;
 	*road_width = 50;
 	*xpoints = 1.0;
@@ -154,6 +157,7 @@ void set_variables(int* t1, int* frames, double* fpsTimer, double* fps, int* qui
 	*previous_points = 0;
 	*no_cars = 0;
 	*przesuniecie = 0;
+	*delta_position = 0;
 
 
 	for (int i = 0; i < NUMBER_OF_BULLETS; i++)
@@ -337,13 +341,16 @@ void draw_road(SDL_Surface* screen, int road_width, int kolor1, int kolor2, doub
 	if (*przesuniecie > 60) DrawRectangle(screen, ((SCREEN_WIDTH - TEXTBOX_WIDTH) - 3) / 2, SCREEN_HEIGHT - (120 - *przesuniecie), 6, (120 - *przesuniecie), kolor2, kolor2);
 }
 
-void time_calculations(double* delta_time, int* t1, int* t2, double* world_time, double* distance, double* move, double* car_speed, double* fps_timer, double* fps, int* frames, double* points, double* xpoints, double* nopoints_time, double* przesuniecie) {
+void time_calculations(double* delta_time, int* t1, int* t2, double* world_time, double* distance, double* move, double* car_speed_x, double* car_speed_y, double* fps_timer, double* fps, int* frames, double* points, double* xpoints, double* nopoints_time, double* przesuniecie, struct position* car_position, double* delta_position)
+{
+	double change = car_position->y - *delta_position;
+	if (change > 1.0) change = 1.0;
+	*delta_position = car_position->y;
 	*t2 = SDL_GetTicks();
 	*delta_time = (*t2 - *t1) * 0.001;
 	*t1 = *t2;
 	*world_time += *delta_time;
-	*distance += *car_speed * *delta_time;
-	*move = ROAD_SPEED * *car_speed * *delta_time;
+	*distance += ROAD_SPEED* *delta_time;
 
 	*fps_timer += *delta_time;
 	if (*fps_timer > 0.5) {
@@ -353,7 +360,7 @@ void time_calculations(double* delta_time, int* t1, int* t2, double* world_time,
 	};
 
 	*nopoints_time -= *delta_time;
-	if (*nopoints_time < 0) *points += *xpoints * *delta_time;
+	if (*nopoints_time < 0) *points += (*xpoints-change) * *delta_time;
 	*xpoints = 1.0;
 
 	*przesuniecie += ROAD_SPEED * *delta_time;
@@ -361,10 +368,19 @@ void time_calculations(double* delta_time, int* t1, int* t2, double* world_time,
 	{
 		*przesuniecie -= 120;
 	}
+	printf("dt: %.3lf  zmiana: %.10lf\n", *delta_time, change);
 }
 
-void movement_calculations(double* world_time, double* delta_time, struct position* powerup_position, struct position* npc_position, struct position* car_position, struct position* enemy_position)
+void movement_calculations(double* world_time, double* delta_time, struct position* powerup_position, struct position* npc_position, struct position* car_position, struct position* enemy_position, double* delta_position, double* car_speed_x, double* car_speed_y, int road_width)
 {
+	if (car_position->x + (double)ROAD_SPEED * *car_speed_x * *delta_time > (CAR_WIDTH / 2 + road_width) && *car_speed_x < 0) car_position->x += (double)ROAD_SPEED * *car_speed_x * *delta_time;
+	else if (car_position->x + (double)ROAD_SPEED * *car_speed_x * *delta_time < (SCREEN_WIDTH - TEXTBOX_WIDTH - CAR_WIDTH / 2 - road_width) && *car_speed_x > 0) car_position->x += (double)ROAD_SPEED * *car_speed_x * *delta_time;
+
+
+	if (car_position->y + (double)ROAD_SPEED * *car_speed_y * *delta_time > CAR_HEIGHT && *car_speed_y < 0) car_position->y += (double)ROAD_SPEED * *car_speed_y * *delta_time;
+	else if (car_position->y + (double)ROAD_SPEED * *car_speed_y * *delta_time < (SCREEN_HEIGHT - CAR_HEIGHT) && *car_speed_y > 0) car_position->y += (double)ROAD_SPEED * *car_speed_y * *delta_time;
+
+	
 	powerup_position->y += *delta_time * ROAD_SPEED;
 
 	npc_position->y += *delta_time * NPC_SPEED;
@@ -389,7 +405,8 @@ void movement_calculations(double* world_time, double* delta_time, struct positi
 		enemy_position->y += *delta_time * ENEMY_SPEED;
 	}
 
-	
+	//printf("dp: %.5lf\n", *delta_position);
+	//printf("car_x: % .4lf  car_x : % .4lf\n", car_position->x, car_position->y);
 }
 
 int change_road_width()
@@ -450,12 +467,12 @@ void is_powerup_taken(struct position* powerup_position, struct position* car_po
 void create_npc(double* npc_exist, struct position* position, struct position* car_position)
 {
 	position->x = rand() % 300 + 111; //322 to minimalna szerokosc drogi
-	position->y = rand() % (SCREEN_HEIGHT - 100) + 50;
+	position->y = 0;
 
 	while (fabs(position->x - car_position->x) < 50 || fabs(position->y - car_position->y) < 50)
 	{
 		position->x = rand() % 300 + 111; //322 to minimalna szerokosc drogi
-		position->y = rand() % (SCREEN_HEIGHT - 200) + 50;
+		position->y = 0;
 	}
 	*npc_exist = 0.1;
 }
@@ -632,9 +649,9 @@ void is_crash(struct position* car_position, struct position* npc_position, stru
 
 void add_car(int* car_number, double* points, double* previous_points)
 {
-	printf("points: %.3lf   prev_points: %.3lf\n", *points, *previous_points);
+	//printf("points: %.3lf   prev_points: %.3lf\n", *points, *previous_points);
 
-	if ((int)*points % 10 == 0 && (int)*previous_points % 10 != 0) (*car_number)++;
+	if ((int)*points % NEW_CAR_POINTS == 0 && (int)*previous_points % NEW_CAR_POINTS != 0) (*car_number)++;
 	*previous_points = *points;
 }
 
@@ -674,7 +691,7 @@ extern "C"
 
 int main(int argc, char **argv) {
 	int t1, t2, quit, frames, rc,  road_width, bullet1_exist[NUMBER_OF_BULLETS], bullet2_exist[NUMBER_OF_BULLETS], bullet_powerup_exist[NUMBER_OF_BULLETS], bullet1_counter, bullet2_counter, bullet_powerup_counter, car_number;
-	double delta_time, world_time, fps_timer, fps, distance, car_speed, move, points, xpoints, powerup_exist, enemy_exist, npc_exist, powerup_time, nopoints_time, previous_points, no_cars, przesuniecie;
+	double delta_time, world_time, fps_timer, fps, distance, car_speed_x, car_speed_y, move, points, xpoints, powerup_exist, enemy_exist, npc_exist, powerup_time, nopoints_time, previous_points, no_cars, przesuniecie, delta_position;
 	SDL_Event event;
 	SDL_Surface *screen, *charset;
 	SDL_Surface *car, *enemy, *powerup, *npc, *bullet1, *bullet2;
@@ -798,12 +815,12 @@ int main(int argc, char **argv) {
 	int bialy = SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF);
 	int counter = 0;
 
-	set_variables(&t1, &frames, &fps_timer, &fps, &quit, &world_time, &distance, &car_speed, &points, &road_width, &xpoints, &powerup_exist, &enemy_exist, &powerup_time, &npc_exist, &bullet1_counter, &bullet2_counter, &bullet_powerup_counter, bullet1_exist, bullet2_exist, bullet_powerup_exist, &nopoints_time, &car_number, &previous_points, &no_cars, &przesuniecie);
+	set_variables(&t1, &frames, &fps_timer, &fps, &quit, &world_time, &distance, &car_speed_x, &car_speed_y, &points, &road_width, &xpoints, &powerup_exist, &enemy_exist, &powerup_time, &npc_exist, &bullet1_counter, &bullet2_counter, &bullet_powerup_counter, bullet1_exist, bullet2_exist, bullet_powerup_exist, &nopoints_time, &car_number, &previous_points, &no_cars, &przesuniecie, &delta_position);
 
 	while (!quit) {
 
-		time_calculations(&delta_time, &t1, &t2, &world_time, &distance, &move, &car_speed, &fps_timer, &fps, &frames, &points, &xpoints, &nopoints_time, &przesuniecie);
-		movement_calculations(&world_time, &delta_time, &powerup_position, &npc_position, &car_position, &enemy_position);
+		time_calculations(&delta_time, &t1, &t2, &world_time, &distance, &move, &car_speed_x, &car_speed_y, &fps_timer, &fps, &frames, &points, &xpoints, &nopoints_time, &przesuniecie, &car_position, &delta_position);
+		movement_calculations(&world_time, &delta_time, &powerup_position, &npc_position, &car_position, &enemy_position, &delta_position, &car_speed_x, &car_speed_y, road_width);
 
 		SDL_FillRect(screen, NULL, czarny);
 
@@ -870,27 +887,31 @@ int main(int argc, char **argv) {
 		if(car_number<=0)
 		{
 			draw_no_cars(screen, charset, scrtex, renderer, zielony, czerwony, czarny, &no_cars, &car_number, &delta_time, &points);
-			set_variables(&t1, &frames, &fps_timer, &fps, &quit, &world_time, &distance, &car_speed, &points, &road_width, &xpoints, &powerup_exist, &enemy_exist, &powerup_time, &npc_exist, &bullet1_counter, &bullet2_counter, &bullet_powerup_counter, bullet1_exist, bullet2_exist, bullet_powerup_exist, &nopoints_time, &car_number, &previous_points, &no_cars, &przesuniecie);
+			set_variables(&t1, &frames, &fps_timer, &fps, &quit, &world_time, &distance, &car_speed_x, &car_speed_y, &points, &road_width, &xpoints, &powerup_exist, &enemy_exist, &powerup_time, &npc_exist, &bullet1_counter, &bullet2_counter, &bullet_powerup_counter, bullet1_exist, bullet2_exist, bullet_powerup_exist, &nopoints_time, &car_number, &previous_points, &no_cars, &przesuniecie, &delta_position);
 			set_position(&car_position);
 		}
 		
-
 		// obsługa zdarzeń
 		while(SDL_PollEvent(&event)) {
 			switch(event.type) {
 				case SDL_KEYDOWN:
 					if(event.key.keysym.sym == SDLK_ESCAPE) quit = 1;
-					else if (event.key.keysym.sym == SDLK_UP && car_position.y > CAR_HEIGHT) car_position.y -= move;
-					else if (event.key.keysym.sym == SDLK_DOWN && car_position.y < SCREEN_HEIGHT - CAR_HEIGHT) car_position.y += move;
-					else if (event.key.keysym.sym == SDLK_RIGHT && car_position.x < SCREEN_WIDTH - TEXTBOX_WIDTH - CAR_WIDTH/2 - road_width) car_position.x += move;
-					else if (event.key.keysym.sym == SDLK_LEFT && car_position.x > CAR_WIDTH/2 + road_width) car_position.x -= move;
-					else if (event.key.keysym.sym == SDLK_n) { set_variables(&t1, &frames, &fps_timer, &fps, &quit, &world_time, &distance, &car_speed, &points, &road_width, &xpoints, &powerup_exist, &enemy_exist, &powerup_time, &npc_exist, &bullet1_counter, &bullet2_counter, &bullet_powerup_counter, bullet1_exist, bullet2_exist, bullet_powerup_exist, &nopoints_time, &car_number, &previous_points, &no_cars, &przesuniecie); set_position(&car_position);}
+					else if (event.key.keysym.sym == SDLK_UP && car_position.y > CAR_HEIGHT) car_speed_y = -1.0;
+					else if (event.key.keysym.sym == SDLK_DOWN && car_position.y < SCREEN_HEIGHT - CAR_HEIGHT) car_speed_y = 1.0;
+					else if (event.key.keysym.sym == SDLK_RIGHT && car_position.x < SCREEN_WIDTH - TEXTBOX_WIDTH - CAR_WIDTH / 2 - road_width) car_speed_x = 1.0;
+					else if (event.key.keysym.sym == SDLK_LEFT && car_position.x > CAR_WIDTH / 2 + road_width) car_speed_x = -1.0;
+					else if (event.key.keysym.sym == SDLK_n) { set_variables(&t1, &frames, &fps_timer, &fps, &quit, &world_time, &distance, &car_speed_x, &car_speed_y, &points, &road_width, &xpoints, &powerup_exist, &enemy_exist, &powerup_time, &npc_exist, &bullet1_counter, &bullet2_counter, &bullet_powerup_counter, bullet1_exist, bullet2_exist, bullet_powerup_exist, &nopoints_time, &car_number, &previous_points, &no_cars, &przesuniecie, &delta_position); set_position(&car_position);}
 					else if (event.key.keysym.sym == SDLK_p) pause_game(screen, charset, niebieski, czerwony, &event, &quit, &t1, &t2);
 					else if (event.key.keysym.sym == SDLK_SPACE) shoot(screen, &car_position, &powerup_time, bullet1, bullet1_exist, bullet1_position, bullet1_counter, bullet_powerup_exist, bullet_powerup_position, bullet_powerup_counter);
 					break;
 				case SDL_QUIT:
 					quit = 1;
 					break;
+				case SDL_KEYUP:
+					if (event.key.keysym.sym == SDLK_UP) car_speed_y = 0;
+					else if (event.key.keysym.sym == SDLK_DOWN) car_speed_y = 0;
+					else if (event.key.keysym.sym == SDLK_RIGHT) car_speed_x = 0;
+					else if (event.key.keysym.sym == SDLK_LEFT) car_speed_x = 0;
 				};
 			};
 		frames++;
