@@ -1,12 +1,20 @@
+
+//WYJEBAĆ 
+//WSZYSTKIE 
+//IOSTREAMY, 
+//RANDOM, 
+//FSTREAM
+
+
 #define _USE_MATH_DEFINES
-#include <iostream>
 #include<math.h>
 #include<stdio.h>
-#include<string.h>
 #include <stdlib.h>
-#include <random>
-#include <fstream>
+#include <time.h>
+//#include <string.h>
 
+//srand(time(NULL));
+//rand()%50+250;
 extern "C" {
 #include"./SDL2-2.0.10/include/SDL.h"
 #include"./SDL2-2.0.10/include/SDL_main.h"
@@ -28,8 +36,8 @@ extern "C" {
 #define BULLET_LENGTH 25
 #define BULLET_WIDTH 5
 
-#define START_CAR_NUMBER 2
-#define UNLIMITED_CARS_TIME 1 //seconds
+#define START_CAR_NUMBER 5
+#define UNLIMITED_CARS_TIME 10 //seconds
 
 #define ROAD_SPEED 200
 #define ENEMY_SPEED	50
@@ -41,8 +49,7 @@ extern "C" {
 #define POWERUP_SPAWN 10
 
 #define NEW_CAR_POINTS 100 // in points/50
-
-using namespace std;
+#define FINISH_SCREEN_TIME 10 //seconds
 
 
 // narysowanie napisu txt na powierzchni screen, zaczynając od punktu (x, y)
@@ -88,11 +95,16 @@ void DrawSurface(SDL_Surface *screen, SDL_Surface *sprite, int x, int y) {
 
 // rysowanie pojedynczego pixela
 // draw a single pixel
-void DrawPixel(SDL_Surface *surface, int x, int y, Uint32 color) {
-	int bpp = surface->format->BytesPerPixel;
-	Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
- 	*(Uint32 *)p = color;
-	};
+void DrawPixel(SDL_Surface *surface, int x, int y, Uint32 color)
+{
+	if (x >= 0 && x <= SCREEN_WIDTH && y >= 0 && y <= SCREEN_HEIGHT)
+	{
+		int bpp = surface->format->BytesPerPixel;
+		Uint8* p = (Uint8*)surface->pixels + y * surface->pitch + x * bpp;
+		*(Uint32*)p = color;
+	}
+	else printf("Próba narysowanai poza ekranem x: %d y: %d\n", x, y);
+};
 
 
 // rysowanie linii o długości l w pionie (gdy dx = 0, dy = 1) 
@@ -262,11 +274,11 @@ void set_position(struct position* position)
 //	return 0;
 //}
 
-void save_result(string name, int score, double time)
+void save_result(char* name, int score, double time)
 {
 	FILE* list = fopen("best_results.txt", "a");
 
-	fprintf(list, "%s %d %.2lf\n", name.c_str(), score, time);
+	fprintf(list, "%s %d %.2lf\n", name, score, time);
 	fclose(list);
 }
 
@@ -343,8 +355,6 @@ void road_calculations(int* road_width, int* expected_road_width)
 {
 	if (*road_width > *expected_road_width)	(*road_width)--;
 	else if (*road_width < *expected_road_width)	(*road_width)++;
-
-	printf("exp:  %d    curr:  %d\n", *expected_road_width, *road_width);
 }
 
 void draw_road(SDL_Surface* screen, int road_width, int kolor1, int kolor2, double* przesuniecie)
@@ -432,10 +442,11 @@ void movement_calculations(double* world_time, double* delta_time, struct positi
 
 int change_road_width()
 {
+	srand(time(NULL));
 	return rand() % 50 + 50;
 }
 
-void pause_game(SDL_Surface* screen, SDL_Surface* charset, int kolor1, int kolor2, SDL_Event* event, int* quit, int* t1, int* t2)
+void pause_game(SDL_Event* event, int* quit, int* t1)
 {
 	int play = 0;
 
@@ -446,7 +457,7 @@ void pause_game(SDL_Surface* screen, SDL_Surface* charset, int kolor1, int kolor
 			switch (event->type) 
 			{
 			case SDL_KEYDOWN:
-				if (event->key.keysym.sym == SDLK_p)
+				if (event->key.keysym.sym == SDLK_r)
 				{
 					play = 1;
 					break;
@@ -487,6 +498,7 @@ void is_powerup_taken(struct position* powerup_position, struct position* car_po
 
 void create_npc(double* npc_exist, struct position* position, struct position* car_position)
 {
+	srand(time(NULL));
 	position->x = rand() % 300 + 111; //322 to minimalna szerokosc drogi
 	position->y = 0;
 
@@ -500,6 +512,7 @@ void create_npc(double* npc_exist, struct position* position, struct position* c
 
 void create_enemy(double* enemy_exist, struct position* position, struct position* car_position)
 {
+	srand(time(NULL));
 	position->x = rand() % 300 + 111; //322 to minimalna szerokosc drogi
 	position->y = rand() % (SCREEN_HEIGHT - 100) + 50;
 
@@ -676,11 +689,11 @@ void add_car(int* car_number, double* points, double* previous_points)
 	*previous_points = *points;
 }
 
-void draw_no_cars(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex, SDL_Renderer* renderer, int kolor1, int kolor2, int czarny, double* no_cars, int* car_number, double* delta_time, double* points, double* world_time, SDL_Event* event)
+void draw_no_cars(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex, SDL_Renderer* renderer, int kolor1, int kolor2, int czarny, double* no_cars, int* car_number, double* delta_time, double* points, double* world_time, SDL_Event* event, int* quit)
 {
 	SDL_FillRect(screen, NULL, czarny);
-	*no_cars = 5.0;
-	string name = "";
+	*no_cars = FINISH_SCREEN_TIME;
+	char name[32] = "";
 	int size = 0;
 	char txt[128];
 	
@@ -699,7 +712,7 @@ void draw_no_cars(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex
 		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 128, txt, charset);
 		sprintf(txt, "TWOJ CZAS: %.2lf ", *world_time);
 		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 160, txt, charset);
-		sprintf(txt, "WPISZ SWOJ NICK: %s ", name.c_str());
+		sprintf(txt, "WPISZ SWOJ NICK: %s ", name);
 		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 192, txt, charset);
 
 		while (SDL_PollEvent(event))
@@ -707,13 +720,14 @@ void draw_no_cars(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex
 			switch (event->type)
 			{
 				case SDL_TEXTINPUT:
-					name += event->text.text;
+					name[size] = *(event->text.text);
 					size++;
 			}
 		}
-		printf("%s\n", name.c_str());
+		printf("%s\n", name);
 
 		*no_cars -= *delta_time;
+		if (*quit == 1) break;
 
 		SDL_UpdateTexture(scrtex, NULL, screen->pixels, screen->pitch);
 		SDL_RenderClear(renderer);
@@ -724,8 +738,175 @@ void draw_no_cars(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex
 
 	SDL_StopTextInput();
 
-	if (size == 0) name = "anonymus";
+	if (size == 0)
+	{
+		name[0] = 'a';
+		name[1] = 'n';
+		name[2] = 'o';
+		name[3] = 'n';
+		name[4] = 'y';
+		name[5] = 'm';
+		name[6] = 'u';
+		name[7] = 's';
+
+		size = 8;
+	}
+
 	save_result(name, 50 * (int)(*points), *world_time);
+}
+
+void move_inside_tab(char names[][32], double* time, int* points, char *imie, int wynik, double czas, int index)
+{
+	for (int i = 4; i > index; i--)
+	{
+		for (int j = 0; j < 32; j++)
+		{
+			names[i][j] = names[i - 1][j];
+		}
+
+		time[i] = time[i-1];
+		points[i] = points[i-1];
+	}
+
+	for (int j = 0; j < 32; j++)
+	{
+		names[index][j] = imie[j];
+	}
+	
+	time[index] = czas;
+	points[index] = wynik;
+
+}
+
+
+void sort_results(char names[][32], double* time, int* points, int type)
+{
+	FILE* list = fopen("best_results.txt", "r");
+	char znak = 'a';
+	int licznik = 0;
+
+	char imie[32] = "";
+	int wynik = 0;
+	double czas = 0;
+
+	while ((znak = fgetc(list)) != EOF)
+	{
+		if (znak == '\n') licznik++;
+	}
+	printf("\n%d\n", licznik);
+
+	
+	rewind(list);
+	for (int i = 0; i < licznik; i++)
+	{
+		fscanf(list, "%s %d %lf", imie, &wynik, &czas);
+
+		for(int j = 0; j < 5; j++)
+		{
+			if (type == 0)
+			{
+				if (wynik > points[j])
+				{
+					move_inside_tab(names, time, points, imie, wynik, czas, j);
+					printf("%s %d %.2lf\n", imie, wynik, czas);
+					break;
+				}
+			}
+			else
+			{
+				if (czas > time[j])
+				{
+					move_inside_tab(names, time, points, imie, wynik, czas, j);
+					printf("essa %s %d %.2lf\n", imie, wynik, czas);
+					break;
+				}
+			}
+		}
+	}
+	licznik = 0;
+	printf("jestem");
+
+	fclose(list);
+}
+
+void draw_highscore(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex, SDL_Renderer* renderer, int kolor1, int kolor2, SDL_Event* event, int* quit, int* t1, int type, int czarny, double delta_time) //type == 0 -> sort by points       type == 1 -> sort by time 
+{
+	SDL_FillRect(screen, NULL, czarny);
+	char txt[128];
+	int show = 0;
+
+	char names[5][32];
+	double time[5];
+	int points[5];
+	
+	printf("1");
+	for (int i = 0; i < 5; i++)
+	{
+		points[i] = 0;
+		time[i] = 0;
+		for (int j = 0; j < 32; j++)
+		{
+			names[i][j] = ' ';
+		}
+	}
+
+	sort_results(names, time, points, type);	
+
+
+	while (!show)
+	{
+
+		DrawRectangle(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4, 16, 3 * (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4, 256, kolor1, kolor2);
+
+		sprintf(txt, "OTO NAJLEPSZE WYNIKI:");
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 32, txt, charset);
+		
+
+		sprintf(txt, "1. %s     %.1lf s     %d punktow", names[0], time[0], points[0]);
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 64, txt, charset);
+		printf("1. %s     %.1lf s     %d punktow\n", names[0], time[0], points[0]);
+
+		sprintf(txt, "2. %s     %.1lf s     %d punktow", names[1], time[1], points[1]);
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 96, txt, charset);
+		printf("2. %s     %.1lf s     %d punktow\n", names[1], time[1], points[1]);
+
+		sprintf(txt, "3. %s    %.1lf s     %d punktow", names[2], time[2], points[2]);
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 128, txt, charset);
+		printf("3. %s     %.1lf s     %d punktow\n", names[2], time[2], points[2]);
+
+		sprintf(txt, "4. %s    %.1lf s     %d punktow", names[3], time[3], points[3]);
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 160, txt, charset);
+		printf("4. %s     %.1lf s     %d punktow\n", names[3], time[3], points[3]);
+
+		sprintf(txt, "5. %s    %.1lf s     %d punktow", names[4], time[4], points[4]);
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 192, txt, charset);
+		printf("5. %s     %.1lf s     %d punktow\n", names[4], time[4], points[4]);
+
+		sprintf(txt, "ABY WZNOWIC GRE WCISNIJ PRZYCISK r");
+		DrawString(screen, (SCREEN_WIDTH - TEXTBOX_WIDTH) / 4 + 16, 256, txt, charset);
+
+		while (SDL_PollEvent(event))
+		{
+			switch (event->type)
+			{
+			case SDL_QUIT:
+				*quit = 1;
+				break;
+			case SDL_KEYDOWN:
+				if (event->key.keysym.sym == SDLK_ESCAPE) { *quit = 1; show = 1;}
+				else if (event->key.keysym.sym == SDLK_r) show = 1;
+			}
+		}
+
+		if (*quit == 1) break;
+
+		SDL_UpdateTexture(scrtex, NULL, screen->pixels, screen->pitch);
+		SDL_RenderClear(renderer);
+		SDL_RenderCopy(renderer, scrtex, NULL, NULL);
+		SDL_RenderPresent(renderer);
+
+		*t1 = SDL_GetTicks();
+	}
 }
 
 
@@ -935,7 +1116,7 @@ int main(int argc, char **argv) {
 		//koniec
 		if(car_number<=0)
 		{
-			draw_no_cars(screen, charset, scrtex, renderer, zielony, czerwony, czarny, &no_cars, &car_number, &delta_time, &points, &world_time, &event);
+			draw_no_cars(screen, charset, scrtex, renderer, zielony, czerwony, czarny, &no_cars, &car_number, &delta_time, &points, &world_time, &event, &quit);
 			set_variables(&t1, &frames, &fps_timer, &fps, &quit, &world_time, &distance, &car_speed_x, &car_speed_y, &points, &road_width, &xpoints, &powerup_exist, &enemy_exist, &powerup_time, &npc_exist, &bullet1_counter, &bullet2_counter, &bullet_powerup_counter, bullet1_exist, bullet2_exist, bullet_powerup_exist, &nopoints_time, &car_number, &previous_points, &no_cars, &przesuniecie, &delta_position, &expected_road_width);
 			set_position(&car_position);
 		}
@@ -950,7 +1131,9 @@ int main(int argc, char **argv) {
 					else if (event.key.keysym.sym == SDLK_RIGHT && car_position.x < SCREEN_WIDTH - TEXTBOX_WIDTH - CAR_WIDTH / 2 - road_width) car_speed_x = 1.0;
 					else if (event.key.keysym.sym == SDLK_LEFT && car_position.x > CAR_WIDTH / 2 + road_width) car_speed_x = -1.0;
 					else if (event.key.keysym.sym == SDLK_n) { set_variables(&t1, &frames, &fps_timer, &fps, &quit, &world_time, &distance, &car_speed_x, &car_speed_y, &points, &road_width, &xpoints, &powerup_exist, &enemy_exist, &powerup_time, &npc_exist, &bullet1_counter, &bullet2_counter, &bullet_powerup_counter, bullet1_exist, bullet2_exist, bullet_powerup_exist, &nopoints_time, &car_number, &previous_points, &no_cars, &przesuniecie, &delta_position, &expected_road_width); set_position(&car_position);}
-					else if (event.key.keysym.sym == SDLK_p) pause_game(screen, charset, niebieski, czerwony, &event, &quit, &t1, &t2);
+					else if (event.key.keysym.sym == SDLK_r) pause_game(&event, &quit, &t1);
+					else if (event.key.keysym.sym == SDLK_p) draw_highscore(screen, charset, scrtex, renderer, niebieski, zielony, &event, &quit, &t1, 0, czarny, delta_time);
+					else if (event.key.keysym.sym == SDLK_t) draw_highscore(screen, charset, scrtex, renderer, niebieski, zielony, &event, &quit, &t1, 1, czarny, delta_time);
 					else if (event.key.keysym.sym == SDLK_SPACE) shoot(screen, &car_position, &powerup_time, bullet1, bullet1_exist, bullet1_position, bullet1_counter, bullet_powerup_exist, bullet_powerup_position, bullet_powerup_counter);
 					break;
 				case SDL_QUIT:
