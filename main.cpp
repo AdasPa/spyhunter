@@ -1,11 +1,3 @@
-
-//WYJEBAĆ 
-//WSZYSTKIE 
-//IOSTREAMY, 
-//RANDOM, 
-//FSTREAM
-
-
 #define _USE_MATH_DEFINES
 #include<math.h>
 #include<stdio.h>
@@ -295,14 +287,18 @@ void draw_game_controls(SDL_Surface* screen, SDL_Surface* charset, int kolor1, i
 	DrawString(screen, SCREEN_WIDTH - 124, SCREEN_HEIGHT - 172, text, charset);
 	sprintf(text, "n-nowa gra");
 	DrawString(screen, SCREEN_WIDTH - 124, SCREEN_HEIGHT - 152, text, charset);
-	sprintf(text, "s-zapisz");
-	DrawString(screen, SCREEN_WIDTH - 124, SCREEN_HEIGHT - 132, text, charset);
-	sprintf(text, "l-wczytaj");
-	DrawString(screen, SCREEN_WIDTH - 124, SCREEN_HEIGHT - 112, text, charset);
-	sprintf(text, "p-pauza/play");
+	//sprintf(text, "s-zapisz");
+	//DrawString(screen, SCREEN_WIDTH - 124, SCREEN_HEIGHT - 132, text, charset);
+	//sprintf(text, "l-wczytaj");
+	//DrawString(screen, SCREEN_WIDTH - 124, SCREEN_HEIGHT - 112, text, charset);
+	sprintf(text, "r-pauza/play");
 	DrawString(screen, SCREEN_WIDTH - 124, SCREEN_HEIGHT - 92, text, charset);
 	sprintf(text, "spacja-strzal");
 	DrawString(screen, SCREEN_WIDTH - 124, SCREEN_HEIGHT - 72, text, charset);
+	sprintf(text, "p-wyniki (pkt)");
+	DrawString(screen, SCREEN_WIDTH - 124, SCREEN_HEIGHT - 52, text, charset);
+	sprintf(text, "t-wyniki (czas)");
+	DrawString(screen, SCREEN_WIDTH - 124, SCREEN_HEIGHT - 32, text, charset);
 }
 
 void draw_time_fps(SDL_Surface* screen, SDL_Surface* charset, int kolor1, int kolor2, double worldTime, double fps, double points, double distance, int car_number)
