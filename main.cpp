@@ -1,3 +1,11 @@
+
+//WYJEBAĆ 
+//WSZYSTKIE 
+//IOSTREAMY, 
+//RANDOM, 
+//FSTREAM
+
+
 #define _USE_MATH_DEFINES
 #include<math.h>
 #include<stdio.h>
@@ -138,6 +146,14 @@ struct position
 	double y = SCREEN_HEIGHT / 2;
 };
 
+void set_colors(SDL_Surface* screen, int* czarny, int* czerwony, int* zielony, int* niebieski, int* bialy)
+{
+	*czarny = SDL_MapRGB(screen->format, 0x00, 0x00, 0x00);
+	*czerwony = SDL_MapRGB(screen->format, 0xFF, 0x00, 0x00);
+	*zielony = SDL_MapRGB(screen->format, 0x00, 0xFF, 0x00);
+	*niebieski = SDL_MapRGB(screen->format, 0x11, 0x11, 0xCC);
+	*bialy = SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF);
+}
 
 void set_variables(int* t1, int* frames, double* fpsTimer, double* fps, int* quit, double* worldTime, double* distance, double* car_speed_x, double* car_speed_y, double* points, int* road_width, double* xpoints, double* powerup_exist, double* enemy_exist, double* powerup_time, double* npc_exist, int* bullet1_counter, int* bullet2_counter, int* bullet_powerup_counter, int* bullet1_exist, int* bullet2_exist, int* bullet_powerup_exist, double* nopoints_time, int* car_number, double* previous_points, double* no_cars, double* przesuniecie, double* delta_position, int* expected_road_width)
 {
@@ -265,6 +281,119 @@ void set_position(struct position* position)
 //
 //	return 0;
 //}
+
+int free_charset(SDL_Surface* screen, SDL_Window* window, SDL_Renderer* renderer, SDL_Texture* scrtex)
+{
+	printf("SDL_LoadBMP error: %s\n", SDL_GetError());
+	SDL_FreeSurface(screen);
+	Destroy(scrtex, window, renderer);
+	return 1;
+}
+
+int free_car(SDL_Surface* screen, SDL_Surface* charset, SDL_Window* window, SDL_Renderer* renderer, SDL_Texture* scrtex)
+{
+	printf("SDL_LoadBMP(auto1.bmp) error: %s\n", SDL_GetError());
+	SDL_FreeSurface(charset);
+	SDL_FreeSurface(screen);
+	Destroy(scrtex, window, renderer);
+	return 1;
+}
+
+int free_enemy(SDL_Surface* screen, SDL_Surface* charset, SDL_Window* window, SDL_Renderer* renderer, SDL_Texture* scrtex, SDL_Surface* car)
+{
+	printf("SDL_LoadBMP(auto2.bmp) error: %s\n", SDL_GetError());
+	SDL_FreeSurface(charset);
+	SDL_FreeSurface(screen);
+	SDL_FreeSurface(car);
+	Destroy(scrtex, window, renderer);
+	return 1;
+}
+
+int free_powerup(SDL_Surface* screen, SDL_Surface* charset, SDL_Window* window, SDL_Renderer* renderer, SDL_Texture* scrtex, SDL_Surface* car, SDL_Surface* enemy)
+{
+	printf("SDL_LoadBMP(powerup.bmp) error: %s\n", SDL_GetError());
+	SDL_FreeSurface(charset);
+	SDL_FreeSurface(screen);
+	SDL_FreeSurface(car);
+	SDL_FreeSurface(enemy);
+	Destroy(scrtex, window, renderer);
+	return 1;
+}
+
+int free_npc(SDL_Surface* screen, SDL_Surface* charset, SDL_Window* window, SDL_Renderer* renderer, SDL_Texture* scrtex, SDL_Surface* car, SDL_Surface* enemy, SDL_Surface* powerup)
+{
+	printf("SDL_LoadBMP(npc.bmp) error: %s\n", SDL_GetError());
+	SDL_FreeSurface(charset);
+	SDL_FreeSurface(screen);
+	SDL_FreeSurface(car);
+	SDL_FreeSurface(enemy);
+	SDL_FreeSurface(powerup);
+	Destroy(scrtex, window, renderer);
+	return 1;
+}
+
+int free_bullet1(SDL_Surface* screen, SDL_Surface* charset, SDL_Window* window, SDL_Renderer* renderer, SDL_Texture* scrtex, SDL_Surface* car, SDL_Surface* enemy, SDL_Surface* powerup, SDL_Surface* npc)
+{
+	printf("SDL_LoadBMP(bullet1.bmp) error: %s\n", SDL_GetError());
+	SDL_FreeSurface(charset);
+	SDL_FreeSurface(screen);
+	SDL_FreeSurface(car);
+	SDL_FreeSurface(enemy);
+	SDL_FreeSurface(powerup);
+	SDL_FreeSurface(npc);
+	Destroy(scrtex, window, renderer);
+	return 1;
+}
+
+int free_bullet2(SDL_Surface* screen, SDL_Surface* charset, SDL_Window* window, SDL_Renderer* renderer, SDL_Texture* scrtex, SDL_Surface* car, SDL_Surface* enemy, SDL_Surface* powerup, SDL_Surface* npc, SDL_Surface* bullet1)
+{
+	printf("SDL_LoadBMP(bullet2.bmp) error: %s\n", SDL_GetError());
+	SDL_FreeSurface(charset);
+	SDL_FreeSurface(screen);
+	SDL_FreeSurface(car);
+	SDL_FreeSurface(enemy);
+	SDL_FreeSurface(powerup);
+	SDL_FreeSurface(npc);
+	SDL_FreeSurface(bullet1);
+	Destroy(scrtex, window, renderer);
+	return 1;
+}
+
+void free_all(SDL_Surface* screen, SDL_Surface* charset, SDL_Window* window, SDL_Renderer* renderer, SDL_Texture* scrtex, SDL_Surface* car, SDL_Surface* enemy, SDL_Surface* powerup, SDL_Surface* npc, SDL_Surface* bullet1, SDL_Surface* bullet2)
+{
+	
+	SDL_FreeSurface(charset);
+	SDL_FreeSurface(screen);
+	SDL_FreeSurface(car);
+	SDL_FreeSurface(enemy);
+	SDL_FreeSurface(powerup);
+	SDL_FreeSurface(npc);
+	SDL_FreeSurface(bullet1);
+	SDL_FreeSurface(bullet2);
+	Destroy(scrtex, window, renderer);
+	printf("Everything freed.");
+}
+
+int create_window_error()
+{
+	SDL_Quit();
+	printf("SDL_CreateWindowAndRenderer error: %s\n", SDL_GetError());
+	return 1;
+}
+
+int init_error()
+{
+	printf("SDL_Init error: %s\n", SDL_GetError());
+	return 1;
+}
+
+void rendering_stuff(SDL_Window* window, SDL_Renderer* renderer)
+{
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+	SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	SDL_SetWindowTitle(window, "Adam Pacek 193318");
+}
 
 void save_result(char* name, int score, double time)
 {
@@ -720,7 +849,6 @@ void draw_no_cars(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex
 					size++;
 			}
 		}
-		printf("%s\n", name);
 
 		*no_cars -= *delta_time;
 		if (*quit == 1) break;
@@ -729,7 +857,6 @@ void draw_no_cars(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex
 		SDL_RenderClear(renderer);
 		SDL_RenderCopy(renderer, scrtex, NULL, NULL);
 		SDL_RenderPresent(renderer);
-
 	}
 
 	SDL_StopTextInput();
@@ -773,7 +900,6 @@ void move_inside_tab(char names[][32], double* time, int* points, char *imie, in
 	points[index] = wynik;
 
 }
-
 
 void sort_results(char names[][32], double* time, int* points, int type)
 {
@@ -907,146 +1033,55 @@ void draw_highscore(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrt
 
 
 
-
-
 // main
 #ifdef __cplusplus
 extern "C"
 #endif
 
 int main(int argc, char **argv) {
-	int t1, t2, quit, frames, rc,  road_width, expected_road_width, bullet1_exist[NUMBER_OF_BULLETS], bullet2_exist[NUMBER_OF_BULLETS], bullet_powerup_exist[NUMBER_OF_BULLETS], bullet1_counter, bullet2_counter, bullet_powerup_counter, car_number;
+	int t1, t2, quit, frames, rc,  road_width, expected_road_width, bullet1_exist[NUMBER_OF_BULLETS], bullet2_exist[NUMBER_OF_BULLETS], bullet_powerup_exist[NUMBER_OF_BULLETS], bullet1_counter, bullet2_counter, bullet_powerup_counter, car_number, czarny, czerwony, zielony, niebieski, bialy;
 	double delta_time, world_time, fps_timer, fps, distance, car_speed_x, car_speed_y, move, points, xpoints, powerup_exist, enemy_exist, npc_exist, powerup_time, nopoints_time, previous_points, no_cars, przesuniecie, delta_position;
+	char text[128];
 	SDL_Event event;
-	SDL_Surface *screen, *charset;
-	SDL_Surface *car, *enemy, *powerup, *npc, *bullet1, *bullet2;
+	SDL_Surface *screen, *charset, *car, *enemy, *powerup, *npc, *bullet1, *bullet2;
 	SDL_Texture *scrtex;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
 	struct position car_position, powerup_position, enemy_position, npc_position, bullet1_position[NUMBER_OF_BULLETS], bullet2_position[NUMBER_OF_BULLETS], bullet_powerup_position[NUMBER_OF_BULLETS];
 
-	if(SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		printf("SDL_Init error: %s\n", SDL_GetError());
-		return 1;
-		}
-
-	// tryb pełnoekranowy / fullscreen mode
-//	rc = SDL_CreateWindowAndRenderer(0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP,
-//	                                 &window, &renderer);
-	rc = SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0,
-	                                 &window, &renderer);
-	if(rc != 0) {
-		SDL_Quit();
-		printf("SDL_CreateWindowAndRenderer error: %s\n", SDL_GetError());
-		return 1;
-		};
-	
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-	SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	SDL_SetWindowTitle(window, "Adam Pacek 193318");
-
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) if (init_error) return 1;
+	// tryb pełnoekranowy lub 'normalnoekranowy'
+	rc = SDL_CreateWindowAndRenderer(0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP, &window, &renderer);
+	//rc = SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window, &renderer);
+	if (rc != 0) if (create_window_error) return 0;
+	rendering_stuff(window, renderer);
 	screen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 	scrtex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
-	
 
 	// wczytanie obrazków
 	charset = SDL_LoadBMP("./cs8x8.bmp");
-	if(charset == NULL) {
-		printf("SDL_LoadBMP(cs8x8.bmp) error: %s\n", SDL_GetError());
-		SDL_FreeSurface(screen);
-		Destroy(scrtex, window, renderer);
-		return 1;
-		};
+	if (charset == NULL) if(free_charset(screen, window, renderer, scrtex)) return 1;
 	SDL_SetColorKey(charset, true, 0x000000);
-
 	car = SDL_LoadBMP("./auto1.bmp");
-	if(car == NULL) {
-		printf("SDL_LoadBMP(auto1.bmp) error: %s\n", SDL_GetError());
-		SDL_FreeSurface(charset);
-		SDL_FreeSurface(screen);
-		Destroy(scrtex, window, renderer);
-		return 1;
-		};
-
+	if(car == NULL) if (free_car(screen, charset, window, renderer, scrtex)) return 1;
 	enemy = SDL_LoadBMP("./auto2.bmp");
-	if (enemy == NULL) {
-		printf("SDL_LoadBMP(auto2.bmp) error: %s\n", SDL_GetError());
-		SDL_FreeSurface(charset);
-		SDL_FreeSurface(screen);
-		SDL_FreeSurface(car);
-		Destroy(scrtex, window, renderer);
-		return 1;
-	};
-
+	if (enemy == NULL) if (free_enemy(screen, charset, window, renderer, scrtex, car)) return 1;
 	powerup = SDL_LoadBMP("./powerup.bmp");
-	if (powerup == NULL) {
-		printf("SDL_LoadBMP(powerup.bmp) error: %s\n", SDL_GetError());
-		SDL_FreeSurface(charset);
-		SDL_FreeSurface(screen);
-		SDL_FreeSurface(car);
-		SDL_FreeSurface(enemy);
-		Destroy(scrtex, window, renderer);
-		return 1;
-	};
-
+	if (powerup == NULL) if (free_powerup(screen, charset, window, renderer, scrtex, car, enemy)) return 1;
 	npc = SDL_LoadBMP("./auto3.bmp");
-	if (npc == NULL) {
-		printf("SDL_LoadBMP(auto3.bmp) error: %s\n", SDL_GetError());
-		SDL_FreeSurface(charset);
-		SDL_FreeSurface(screen);
-		SDL_FreeSurface(car);
-		SDL_FreeSurface(enemy);
-		SDL_FreeSurface(powerup);
-		Destroy(scrtex, window, renderer);
-		return 1;
-	};
-
+	if (npc == NULL) if (free_npc(screen, charset, window, renderer, scrtex, car, enemy, powerup)) return 1;
 	bullet1 = SDL_LoadBMP("./bullet1.bmp");
-	if (bullet1 == NULL) {
-		printf("SDL_LoadBMP(bullet1.bmp) error: %s\n", SDL_GetError());
-		SDL_FreeSurface(charset);
-		SDL_FreeSurface(screen);
-		SDL_FreeSurface(car);
-		SDL_FreeSurface(enemy);
-		SDL_FreeSurface(powerup);
-		SDL_FreeSurface(npc);
-		Destroy(scrtex, window, renderer);
-		return 1;
-	};
-
+	if (bullet1 == NULL) if (free_bullet1(screen, charset, window, renderer, scrtex, car, enemy, powerup, npc)) return 1;
 	bullet2 = SDL_LoadBMP("./bullet2.bmp");
-	if (bullet2 == NULL) {
-		printf("SDL_LoadBMP(bullet2.bmp) error: %s\n", SDL_GetError());
-		SDL_FreeSurface(charset);
-		SDL_FreeSurface(screen);
-		SDL_FreeSurface(car);
-		SDL_FreeSurface(enemy);
-		SDL_FreeSurface(powerup);
-		SDL_FreeSurface(npc);
-		SDL_FreeSurface(bullet1);
-		Destroy(scrtex, window, renderer);
-		return 1;
-	};
+	if (bullet2 == NULL)  if (free_bullet2(screen, charset, window, renderer, scrtex, car, enemy, powerup, npc, bullet1)) return 1;
 
-
-
-
-	char text[128];
-	int czarny = SDL_MapRGB(screen->format, 0x00, 0x00, 0x00);
-	int zielony = SDL_MapRGB(screen->format, 0x00, 0xFF, 0x00);
-	int czerwony = SDL_MapRGB(screen->format, 0xFF, 0x00, 0x00);
-	int niebieski = SDL_MapRGB(screen->format, 0x11, 0x11, 0xCC);
-	int bialy = SDL_MapRGB(screen->format, 0xFF, 0xFF, 0xFF);
-	int counter = 0;
-
+	set_colors(screen, &czarny, &czerwony, &zielony, &niebieski, &bialy);
 	set_variables(&t1, &frames, &fps_timer, &fps, &quit, &world_time, &distance, &car_speed_x, &car_speed_y, &points, &road_width, &xpoints, &powerup_exist, &enemy_exist, &powerup_time, &npc_exist, &bullet1_counter, &bullet2_counter, &bullet_powerup_counter, bullet1_exist, bullet2_exist, bullet_powerup_exist, &nopoints_time, &car_number, &previous_points, &no_cars, &przesuniecie, &delta_position, &expected_road_width);
 
 	while (!quit) {
 
 		time_calculations(&delta_time, &t1, &t2, &world_time, &distance, &move, &car_speed_x, &car_speed_y, &fps_timer, &fps, &frames, &points, &xpoints, &nopoints_time, &przesuniecie, &car_position, &delta_position);
 		movement_calculations(&world_time, &delta_time, &powerup_position, &npc_position, &car_position, &enemy_position, &delta_position, &car_speed_x, &car_speed_y, road_width);
-
 		SDL_FillRect(screen, NULL, czarny);
 
 		//rysowanie drogi
@@ -1056,10 +1091,7 @@ int main(int argc, char **argv) {
 
 		//rysowanie powerupa
 		if (!powerup_exist && ((int)world_time) % POWERUP_SPAWN == 0 && (int)(world_time - delta_time) % POWERUP_SPAWN != 0) create_powerup(&powerup_exist, &powerup_position);
-		if (powerup_exist)
-		{
-			DrawSurface(screen, powerup, (int)powerup_position.x, (int)powerup_position.y);
-		}
+		if (powerup_exist) DrawSurface(screen, powerup, (int)powerup_position.x, (int)powerup_position.y);
 
 		//rysowanie bulletów
 		draw_bullets(screen, bullet1, bullet1_exist, bullet1_position, delta_time);
@@ -1067,17 +1099,11 @@ int main(int argc, char **argv) {
 
 		//rysowanie npc
 		if (!npc_exist && ((int)world_time) % NPC_SPAWN == 0 && (int)(world_time - delta_time) % NPC_SPAWN != 0) create_npc(&npc_exist, &npc_position, &car_position);
-		if (npc_exist)
-		{
-			DrawSurface(screen, npc, (int)npc_position.x, (int)npc_position.y);
-		}
+		if (npc_exist) DrawSurface(screen, npc, (int)npc_position.x, (int)npc_position.y);
 
 		//rysowanie enemy
 		if (!enemy_exist && ((int)world_time) % ENEMY_SPAWN == 0 && (int)(world_time - delta_time) % ENEMY_SPAWN != 0) create_enemy(&enemy_exist, &enemy_position, &car_position);
-		if (enemy_exist)
-		{
-			DrawSurface(screen, enemy, (int)enemy_position.x, (int)enemy_position.y);
-		}
+		if (enemy_exist) DrawSurface(screen, enemy, (int)enemy_position.x, (int)enemy_position.y);
 
 		//rysowanie samochodu 
 		DrawSurface(screen, car, (int)car_position.x, (int)car_position.y);
@@ -1086,25 +1112,16 @@ int main(int argc, char **argv) {
 		draw_game_controls(screen, charset, czerwony, niebieski);
 		draw_time_fps(screen, charset, czerwony, niebieski, world_time, fps, points, distance, car_number);
 
-		
-
-
 		SDL_UpdateTexture(scrtex, NULL, screen->pixels, screen->pitch);
-//		SDL_RenderClear(renderer);
 		SDL_RenderCopy(renderer, scrtex, NULL, NULL);
 		SDL_RenderPresent(renderer);
-
 
 		//dodawanie samochodów
 		add_car(&car_number, &points, &previous_points);
 		
-
-
 		//pokrywajace sie wspolrzedne
 		is_crash(&car_position, &npc_position, &enemy_position, &enemy_exist, &npc_exist, &car_number, &world_time);
-
 		is_powerup_taken(&powerup_position, &car_position, &powerup_exist, &powerup_time, &delta_time);
-		//printf("powerup_time: %.1lf powerup_exist: %.1lf\n", powerup_time, powerup_exist);
 		is_npc_out_of_screen(&npc_position, &npc_exist);
 		is_enemy_shot(bullet1_position, bullet_powerup_position, &enemy_position, &enemy_exist, bullet1_exist, bullet_powerup_exist, &points, &nopoints_time);
 		is_npc_shot(bullet1_position, bullet_powerup_position, &npc_position, &npc_exist, bullet1_exist, bullet_powerup_exist, &points, &nopoints_time);
@@ -1146,15 +1163,7 @@ int main(int argc, char **argv) {
 		};
 
 	// zwolnienie powierzchni / freeing all surfaces
-	SDL_FreeSurface(charset);
-	SDL_FreeSurface(screen);
-	SDL_FreeSurface(car);
-	SDL_FreeSurface(enemy);
-	SDL_FreeSurface(powerup);
-	SDL_FreeSurface(npc);
-	SDL_FreeSurface(bullet1);
-	SDL_FreeSurface(bullet2);
-	Destroy(scrtex, window, renderer);
+	free_all(screen, charset, window, renderer, scrtex, car, enemy, powerup, npc, bullet1, bullet2);
 
 	return 0;
 	};
