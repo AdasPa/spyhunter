@@ -1,20 +1,10 @@
 
-//WYJEBAĆ 
-//WSZYSTKIE 
-//IOSTREAMY, 
-//RANDOM, 
-//FSTREAM
-
-
 #define _USE_MATH_DEFINES
 #include<math.h>
 #include<stdio.h>
 #include <stdlib.h>
 #include <time.h>
-//#include <string.h>
 
-//srand(time(NULL));
-//rand()%50+250;
 extern "C" {
 #include"./SDL2-2.0.10/include/SDL.h"
 #include"./SDL2-2.0.10/include/SDL_main.h"
@@ -199,89 +189,6 @@ void set_position(struct position* position)
 	position->y = SCREEN_HEIGHT / 2;
 }
 
-//int load_graphics(SDL_Surface* screen, SDL_Surface* charset, SDL_Texture* scrtex, SDL_Window* window, SDL_Renderer* renderer, SDL_Surface* car, SDL_Surface* enemy, SDL_Surface* powerup, SDL_Surface* npc, SDL_Surface* bullet1, SDL_Surface* bullet2)
-//{
-//	charset = SDL_LoadBMP("./cs8x8.bmp");
-//	if (charset == NULL) {
-//		printf("SDL_LoadBMP(cs8x8.bmp) error: %s\n", SDL_GetError());
-//		SDL_FreeSurface(screen);
-//		Destroy(scrtex, window, renderer);
-//		return 1;
-//	};
-//	SDL_SetColorKey(charset, true, 0x000000);
-//
-//	car = SDL_LoadBMP("./auto1.bmp");
-//	if (car == NULL) {
-//		printf("SDL_LoadBMP(auto1.bmp) error: %s\n", SDL_GetError());
-//		SDL_FreeSurface(charset);
-//		SDL_FreeSurface(screen);
-//		Destroy(scrtex, window, renderer);
-//		return 1;
-//	};
-//
-//	enemy = SDL_LoadBMP("./auto2.bmp");
-//	if (enemy == NULL) {
-//		printf("SDL_LoadBMP(auto2.bmp) error: %s\n", SDL_GetError());
-//		SDL_FreeSurface(charset);
-//		SDL_FreeSurface(screen);
-//		SDL_FreeSurface(car);
-//		Destroy(scrtex, window, renderer);
-//		return 1;
-//	};
-//
-//	powerup = SDL_LoadBMP("./powerup.bmp");
-//	if (powerup == NULL) {
-//		printf("SDL_LoadBMP(powerup.bmp) error: %s\n", SDL_GetError());
-//		SDL_FreeSurface(charset);
-//		SDL_FreeSurface(screen);
-//		SDL_FreeSurface(car);
-//		SDL_FreeSurface(enemy);
-//		Destroy(scrtex, window, renderer);
-//		return 1;
-//	};
-//
-//	npc = SDL_LoadBMP("./auto3.bmp");
-//	if (npc == NULL) {
-//		printf("SDL_LoadBMP(auto3.bmp) error: %s\n", SDL_GetError());
-//		SDL_FreeSurface(charset);
-//		SDL_FreeSurface(screen);
-//		SDL_FreeSurface(car);
-//		SDL_FreeSurface(enemy);
-//		SDL_FreeSurface(powerup);
-//		Destroy(scrtex, window, renderer);
-//		return 1;
-//	};
-//
-//	bullet1 = SDL_LoadBMP("./bullet1.bmp");
-//	if (bullet1 == NULL) {
-//		printf("SDL_LoadBMP(bullet1.bmp) error: %s\n", SDL_GetError());
-//		SDL_FreeSurface(charset);
-//		SDL_FreeSurface(screen);
-//		SDL_FreeSurface(car);
-//		SDL_FreeSurface(enemy);
-//		SDL_FreeSurface(powerup);
-//		SDL_FreeSurface(npc);
-//		Destroy(scrtex, window, renderer);
-//		return 1;
-//	};
-//
-//	bullet2 = SDL_LoadBMP("./bullet2.bmp");
-//	if (npc == NULL) {
-//		printf("SDL_LoadBMP(bullet2.bmp) error: %s\n", SDL_GetError());
-//		SDL_FreeSurface(charset);
-//		SDL_FreeSurface(screen);
-//		SDL_FreeSurface(car);
-//		SDL_FreeSurface(enemy);
-//		SDL_FreeSurface(powerup);
-//		SDL_FreeSurface(npc);
-//		SDL_FreeSurface(bullet1);
-//		Destroy(scrtex, window, renderer);
-//		return 1;
-//	};
-//
-//	return 0;
-//}
-
 int free_charset(SDL_Surface* screen, SDL_Window* window, SDL_Renderer* renderer, SDL_Texture* scrtex)
 {
 	printf("SDL_LoadBMP error: %s\n", SDL_GetError());
@@ -452,7 +359,7 @@ void draw_time_fps(SDL_Surface* screen, SDL_Surface* charset, int kolor1, int ko
 	DrawString(screen, SCREEN_WIDTH - 124, 151, text, charset);
 	sprintf(text, "SAMOCHODY");
 	DrawString(screen, SCREEN_WIDTH - 124, 176, text, charset);
-	sprintf(text, "%d smigaczy", car_number);
+	sprintf(text, "%d", car_number);
 	DrawString(screen, SCREEN_WIDTH - 124, 191, text, charset);
 }
 
@@ -1051,8 +958,8 @@ int main(int argc, char **argv) {
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) if (init_error) return 1;
 	// tryb pełnoekranowy lub 'normalnoekranowy'
-	rc = SDL_CreateWindowAndRenderer(0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP, &window, &renderer);
-	//rc = SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window, &renderer);
+	//rc = SDL_CreateWindowAndRenderer(0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP, &window, &renderer);
+	rc = SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window, &renderer);
 	if (rc != 0) if (create_window_error) return 0;
 	rendering_stuff(window, renderer);
 	screen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
